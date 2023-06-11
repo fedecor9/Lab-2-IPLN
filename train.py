@@ -9,12 +9,12 @@ import re
 # model = Word2Vec.load("Spanish Billion Word Corpus")
 
 def clean_word(word):
-  """Elimina todo lo que no sea una letra, y se remueven los acentos.
-  También pasa la palabra a lowercase."""
-  word = word.lower()
-  word = word.replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')
-  word = re.compile(r'[^a-z|ñ]').sub('', word)
-  return word
+    """Elimina todo lo que no sea una letra, y se remueven los acentos.
+    También pasa la palabra a lowercase."""
+    word = word.lower()
+    word = word.replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')
+    word = re.compile(r'[^a-z|ñ]').sub('', word)
+    return word
 
 set_abreviaturas = [
     ["que", r"((?<=\s)q(?=\s)|^q(?=\s)+|(?<=\s)+q$)"],
@@ -81,49 +81,48 @@ def process_data(data_set):
 #     # Calcular el vector promedio utilizando la función mean de numpy
 #     tweet_vector = np.mean(word_vectors, axis=0)
 #     return tweet_vector
+class NaivesBayesTextClassifier:
+    count_vect = CountVectorizer
+    nb_classifier = MultinomialNB()
+
+    def __init__(self):
+        pass
+
+    def fit(self,transform_func):
+        X_train, Y_train = process_data('train.csv')
+        
+        Y_train = transform_func(np.array(Y_train))
+
+        self.count_vect = CountVectorizer(analyzer='word', token_pattern=r'\w{1,}')
+        x_count = self.count_vect.fit_transform(X_train)
+        self.nb_classifier.fit(x_count, Y_train)
 
 
-def tweets_representation(train_set_processed):
+    def predict(self, X_test):
+        x_test_count = self.count_vect.transform(X_test)
+        return self.nb_classifier.predict(x_test_count)
+        
 
-    # BOW representation
-    count_vect = CountVectorizer(analyzer='word', token_pattern=r'\w{1,}')
-    count_vect.fit_transform(train_set_processed)
-    x_count = count_vect.transform(train_set_processed).todense()
-    return x_count
-
-
-    # Word Embeddings representation
-
-def train_model(x_count, y_train):
-    nb_classiffier = MultinomialNB()
-    nb_classiffier.fit(x_count, y_train)
-    return nb_classiffier
-
-
-def predict(x_test_count, y_test, nb_classiffier):
-    y_pred = nb_classiffier.predict(x_test_count)
-    print("Accuracy: ", np.mean(y_pred == y_test))
-    
-    
 
 def main():
+    #BOW estándar: se recomienda trabajar con la clase CountVectorizer de sklearn, en
+    #particular, fit_transform y transform.
+    transform_func = np.vectorize(lambda x: 1 if x == 'P' else (0 if x == 'N' else -1))
+    clf = NaivesBayesTextClassifier()
+    
+    # Process data and clean training set
+    clf.fit(transform_func)
 
-    transform_func = np.vectorize(lambda x: 1 if x == 'P' else 0)
-
-    train_set_processed, y_train = process_data('train.csv')
-    y_train = transform_func(np.array(y_train))
-
-    x_count = tweets_representation(train_set_processed)
-    nb_classiffier = train_model(x_count, y_train)
-
-    test_set_processed, y_test = process_data('devel.csv')
-    y_test = transform_func(np.array(y_test))
-    x_test_count = tweets_representation(test_set_processed)
-
-    predict(x_test_count, y_test, nb_classiffier)
+    # process devel and clean test set
+    X_new, Y_eval = process_data('test.csv')
+    Y_eval = transform_func(np.array(Y_eval))
+    
+    results = clf.predict(X_new)
+    print("Accuracy: ", np.mean(results == Y_eval))
+    # for i, (tweet, prediction) in enumerate(zip(X_new, results)):
+    #     print(f"Tweet: {tweet} | Prediction: {prediction} | Real: {Y_eval[i]}")
+    #     if i == 10:
+    #         break
 
 
 main()
-
-
-
