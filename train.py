@@ -8,16 +8,7 @@ from sklearn.preprocessing import label_binarize
 from gensim.models import KeyedVectors
 import re 
 
-# Función para obtener el vector promedio de un tweet
-def get_tweet_vector(tweet):
-    vectors = []
-    for word in tweet.split():
-        if word in word_embeddings:
-            vectors.append(word_embeddings[word])
-    if len(vectors) > 0:
-        return np.mean(vectors, axis=0)
-    else:
-        return np.zeros(word_embeddings.vector_size)
+
 
 def clean_word(word):
     """Elimina todo lo que no sea una letra, y se remueven los acentos.
@@ -98,11 +89,24 @@ class NaivesBayesTextClassifier:
 
 # TODO   
 class MLPTextClassifier:
-    word_embedding = KeyedVectors.load_word2vec_format(path_to_embeddings, binary=True) 
-    mlp_classifier = MLPClassifier()
-
-    def __init__(self):
+    word_embedding = KeyedVectors.load_word2vec_format("SBW-vectors-300-min5.txt", limit=50000) 
+    mlp_classifier = MLPClassifier
+    
+    def __init__(self,hidden_layer_sizes, max_iter):
+        
+        self.mlp_classifier = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, max_iter=max_iter)
         pass
+
+      # Función para obtener el vector promedio de un tweet
+    def get_tweet_vector(self,tweet):
+        vectors = []
+        for word in tweet:
+            if word in self.word_embedding:
+                vectors.append(self.word_embedding[word])
+                
+        if len(vectors) > 0:
+            return np.mean(vectors, axis=0)
+        return np.zeros(self.word_embedding.vector_size)   
 
     def fit(self,transform_func):
         X_train, Y_train = process_data('train.csv')
@@ -110,19 +114,45 @@ class MLPTextClassifier:
         Y_train = transform_func(np.array(Y_train))
 
         # Obtener las representaciones vectoriales de los tweets
-        X_vect = np.array([get_tweet_vector(tweet) for tweet in X_train])
+        X_vect = np.array([self.get_tweet_vector(tweet) for tweet in X_train])
 
         self.mlp_classifier.fit(X_vect, Y_train)
 
+  
+         
 
     def predict(self, X_test):
-        x_test_count = self.count_vect.transform(X_test)
+        x_test_count = np.array([self.get_tweet_vector(tweet) for tweet in X_test])
         return self.mlp_classifier.predict(x_test_count) 
 
 
 def main():
     #BOW estándar: se recomienda trabajar con la clase CountVectorizer de sklearn, en
     #particular, fit_transform y transform.
+    # bowModel()
+    wordEmbeddingsModel()
+
+def wordEmbeddingsModel():
+    transform_func = np.vectorize(lambda x: 1 if x == 'P' else (0 if x == 'N' else -1))
+    clf = MLPTextClassifier(hidden_layer_sizes=(50,), max_iter=500)
+    
+    clf.fit(transform_func)
+    
+    x_new, y_eval = process_data('devel.csv')
+    y_eval = transform_func(np.array(y_eval))
+    
+    results = clf.predict(x_new)
+    n_classes = 3
+    y_true_bin = label_binarize(y_eval, classes=range(n_classes))
+    y_pred_bin = label_binarize(results, classes=range(n_classes))
+    
+    print("Accuracy: ", np.mean(results == y_eval))
+    print("Precision: ", metrics.precision_score(y_true_bin, y_pred_bin, average='macro'))
+    print("Recall: ", metrics.recall_score(y_true_bin, y_pred_bin, average='macro'))
+    print("F1 Score: ", metrics.f1_score(y_true_bin, y_pred_bin, average='macro'))
+    
+
+def bowModel():
     transform_func = np.vectorize(lambda x: 1 if x == 'P' else (0 if x == 'N' else -1))
     clf = NaivesBayesTextClassifier()
     
@@ -143,10 +173,7 @@ def main():
     print("Precision: ", metrics.precision_score(y_true_bin, y_pred_bin, average='macro'))
     print("Recall: ", metrics.recall_score(y_true_bin, y_pred_bin, average='macro'))
     print("F1 Score: ", metrics.f1_score(y_true_bin, y_pred_bin, average='macro'))
-    # for i, (tweet, prediction) in enumerate(zip(X_new, results)):
-    #     print(f"Tweet: {tweet} | Prediction: {prediction} | Real: {Y_eval[i]}")
-    #     if i == 10:
-    #         break
+    
     # Obtener las representaciones vectoriales de los tweets
    
 
