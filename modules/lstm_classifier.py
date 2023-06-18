@@ -1,8 +1,6 @@
 import numpy as np
 from keras.models import Sequential
 from keras.initializers import Constant
-from keras.layers import ReLU
-from keras.layers import Dropout
 from keras.layers import LSTM, Dense, Dropout, Embedding, SpatialDropout1D
 
 
@@ -21,3 +19,5 @@ class LSTMClassifier:
 
     def train_model(self, x_train, y_train, x_val, y_val):
         self.lstm_model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=5,batch_size=128)
+
+

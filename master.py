@@ -9,15 +9,28 @@ from modules.mpl_text_classifier import MLPTextClassifier
 from modules.lstm_classifier import LSTMClassifier
 from modules.embedding_matrix import Embeddings
 from modules.word_embeddings import WordEmbeddings
+from pysentimiento import create_analyzer
 
+def get_stopwords():
+    with open('stop_words_esp_anasent.csv', 'r', encoding='utf-8') as f:
+        return set( m.strip() for m in f.readlines())
 
 def main():
     #BOW estándar: se recomienda trabajar con la clase CountVectorizer de sklearn, en
     #particular, fit_transform y transform.
-    # bowModel()
+    bowModel()
     # wordEmbeddingsModel()
-    deep_learning()
+    # pysentimiento_model()
+    # deep_learning()
 
+def pysentimiento_model():
+    analyzer = create_analyzer(task="sentiment", lang="es")   
+    X_test, Y_test = process_data('test.csv')
+    predictions = analyzer.predict(X_test)
+    for tweet, prediction in zip(X_test, predictions):
+        print(f"Tweet: {tweet}")
+        print(f"Clasificación: {max(prediction['labels'])}")
+        print('\n')
 
 def deep_learning():
     transform_func = np.vectorize(lambda x: 1 if x == 'P' else (0 if x == 'N' else 2))
@@ -54,6 +67,7 @@ def deep_learning():
 
     lstm_model.train_model(X_train, Y_train, X_eval, Y_eval)
 
+    
 
 def wordEmbeddingsModel():
     transform_func = np.vectorize(lambda x: 1 if x == 'P' else (0 if x == 'N' else -1))
@@ -80,13 +94,16 @@ def bowModel():
     clf = NaivesBayesTextClassifier()
 
     # Process data and clean training set
-    clf.fit(transform_func)
+    clf.fit(transform_func, usePositiveWords=True)
 
     # process devel and clean test set
-    X_new, Y_eval = process_data('devel.csv')
+    X_new, Y_eval = process_data('devel.csv', useLemas=True)
     Y_eval = transform_func(np.array(Y_eval))
 
-    results = clf.predict(X_new)
+    
+    # Create 2d np array from X_train
+
+    results = clf.predict(X_new, usePositiveWords=True)
 
     n_classes = 3
     y_true_bin = label_binarize(Y_eval, classes=range(n_classes))

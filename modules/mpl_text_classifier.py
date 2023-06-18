@@ -5,13 +5,11 @@ from gensim.models import KeyedVectors
 from modules.clean_words import process_data
 
 
-
 class MLPTextClassifier:
     word_embedding = KeyedVectors.load_word2vec_format("SBW-vectors-300-min5.txt", limit=50000)
     mlp_classifier = MLPClassifier
 
     def __init__(self,hidden_layer_sizes, max_iter):
-
         self.mlp_classifier = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, max_iter=max_iter)
         pass
 
