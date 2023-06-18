@@ -100,7 +100,7 @@ class MLPTextClassifier:
       # Función para obtener el vector promedio de un tweet
     def get_tweet_vector(self,tweet):
         vectors = []
-        for word in tweet:
+        for word in tweet.split():
             if word in self.word_embedding:
                 vectors.append(self.word_embedding[word])
                 
@@ -134,7 +134,7 @@ def main():
 
 def wordEmbeddingsModel():
     transform_func = np.vectorize(lambda x: 1 if x == 'P' else (0 if x == 'N' else -1))
-    clf = MLPTextClassifier(hidden_layer_sizes=(50,), max_iter=500)
+    clf = MLPTextClassifier(hidden_layer_sizes=(100,), max_iter=500)
     
     clf.fit(transform_func)
     
