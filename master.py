@@ -22,9 +22,14 @@ def main():
 def deep_learning():
     transform_func = np.vectorize(lambda x: 1 if x == 'P' else 0 )
 
+
     # Conjunto de entrenamiento pasado a word embeddings
     X_train, Y_train = process_data('train.csv')
     Y_train = transform_func(np.array(Y_train))
+
+
+    # Tweet más largo
+    max_tweet_length = max([len(tweet.split()) for tweet in X_train])
 
     # Conjunto de validación
     X_eval, Y_eval = process_data('devel.csv')
@@ -34,10 +39,10 @@ def deep_learning():
     word_embeddings = wv.load_embeddings(X_train)
 
     # Crear embedding matrix
-    em = Embeddings(word_embeddings)
+    em = Embeddings(word_embeddings, max_tweet_length)
     X_train, X_eval, embedding_matrix = em.create_embedding_matrix(X_train, X_eval)
 
-    lstm_model = LSTMClassifier(embedding_matrix, 100)
+    lstm_model = LSTMClassifier(embedding_matrix, 300, max_tweet_length)
 
     lstm_model.compile_model()
 

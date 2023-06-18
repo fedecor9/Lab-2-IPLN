@@ -18,7 +18,7 @@ class MLPTextClassifier:
     # Función para obtener el vector promedio de un tweet
     def get_tweet_vector(self,tweet):
         vectors = []
-        for word in tweet:
+        for word in tweet.split(' '):
             if word in self.word_embedding:
                 vectors.append(self.word_embedding[word])
 

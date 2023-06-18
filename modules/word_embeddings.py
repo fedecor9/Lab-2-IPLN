@@ -11,18 +11,14 @@ class WordEmbeddings():
     def __init__(self):
         pass
 
-    # Función para obtener el vector promedio de un tweet
-    def get_tweet_vector(self, tweet):
-        vectors = {}
-        tweet = tweet.split()
-        for word in tweet:
-            if self.word_embedding.__contains__(word):
-                vectors[word] = self.word_embedding.__getitem__(word)
-
-        return vectors
-
     def load_embeddings(self, x_train):
         # Obtener las representaciones vectoriales de los tweets
-        # return np.array([self.get_tweet_vector(tweet) for tweet in x_train])
-        return self.word_embedding
+        # return self.word_embedding
+
+        vocab = [word for tweet in x_train for word in tweet.split()]
+        word_vec_dict= {}
+        for word in vocab:
+            if self.word_embedding.has_index_for(word):
+                word_vec_dict[word]= self.word_embedding.get_vector(word)
+        return word_vec_dict
 
