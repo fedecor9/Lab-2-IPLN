@@ -20,13 +20,10 @@ def main():
 
 
 def deep_learning():
-    transform_func = np.vectorize(lambda x: 1 if x == 'P' else 0 )
-
-
+    transform_func = np.vectorize(lambda x: 1 if x == 'P' else (0 if x == 'N' else 2))
     # Conjunto de entrenamiento pasado a word embeddings
     X_train, Y_train = process_data('train.csv')
     Y_train = transform_func(np.array(Y_train))
-
 
     # Tweet más largo
     max_tweet_length = max([len(tweet.split()) for tweet in X_train])
@@ -34,6 +31,10 @@ def deep_learning():
     # Conjunto de validación
     X_eval, Y_eval = process_data('devel.csv')
     Y_eval = transform_func(np.array(Y_eval))
+
+    n_classes = 3
+    Y_train = label_binarize(Y_train, classes=range(n_classes))
+    Y_eval = label_binarize(Y_eval, classes=range(n_classes))
 
     wv = WordEmbeddings()
     word_embeddings = wv.load_embeddings(X_train)
@@ -45,6 +46,11 @@ def deep_learning():
     lstm_model = LSTMClassifier(embedding_matrix, 300, max_tweet_length)
 
     lstm_model.compile_model()
+
+    X_train = np.array(X_train)
+    Y_train = np.array(Y_train)
+    X_eval = np.array(X_eval)
+    Y_eval = np.array(Y_eval)
 
     lstm_model.train_model(X_train, Y_train, X_eval, Y_eval)
 
