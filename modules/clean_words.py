@@ -8,7 +8,7 @@ nltk.download('wordnet')
 
 def get_stopwords():
     with open('stop_words_esp_anasent.csv', 'r', encoding='utf-8') as f:
-        return set( m.strip() for m in f.readlines())
+        return [m.strip() for m in f.readlines()]
 
 def clean_word(word):
     """Elimina todo lo que no sea una letra, y se remueven los acentos.
@@ -53,8 +53,6 @@ def process_data(data_set, stopwords = False, useLemas = False):
 
     if stopwords:
         stopwords_set = get_stopwords()
-
-        
     
     res_word_final = []
     for sentence in train_set:
