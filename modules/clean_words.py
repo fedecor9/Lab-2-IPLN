@@ -59,15 +59,11 @@ def process_data(data_set, stopwords = False, useLemas = False):
         res_words = []
         for word in str(sentence).split(' '):
             # Se "limpian" y estandarizan las palabras, por ej, "Hola!" es lo mismo que "hola"
-            if stopwords:
-                if word not in stopwords_set:
-                    word = clean_word(word) 
-                    res_words.append(word)
-            elif useLemas:
+            if useLemas:
                 word = WordNetLemmatizer().lemmatize(word)
-                word = clean_word(word) 
-                res_words.append(word)
-
+            word = clean_word(word) 
+            res_words.append(word)
+            
         res_word_final.append(res_words)
 
     train_set = np.array([' '.join(sentence) for sentence in res_word_final])

@@ -18,8 +18,8 @@ def get_stopwords():
 def main():
     #BOW estándar: se recomienda trabajar con la clase CountVectorizer de sklearn, en
     #particular, fit_transform y transform.
-    bowModel()
-    # wordEmbeddingsModel()
+    # bowModel()
+    wordEmbeddingsModel()
     # pysentimiento_model()
     # deep_learning()
 
@@ -40,7 +40,7 @@ def deep_learning():
 
     # Tweet más largo
     max_tweet_length = max([len(tweet.split()) for tweet in X_train])
-
+    
     # Conjunto de validación
     X_eval, Y_eval = process_data('devel.csv')
     Y_eval = transform_func(np.array(Y_eval))
@@ -70,8 +70,8 @@ def deep_learning():
     
 
 def wordEmbeddingsModel():
-    transform_func = np.vectorize(lambda x: 1 if x == 'P' else (0 if x == 'N' else -1))
-    clf = MLPTextClassifier(hidden_layer_sizes=(50,), max_iter=500)
+    transform_func = np.vectorize(lambda x: 1 if x == 'P' else (0 if x == 'N' else 2))
+    clf = MLPTextClassifier(hidden_layer_sizes=(100,), max_iter=2500)
 
     clf.fit(transform_func)
 
@@ -83,18 +83,26 @@ def wordEmbeddingsModel():
     y_true_bin = label_binarize(y_eval, classes=range(n_classes))
     y_pred_bin = label_binarize(results, classes=range(n_classes))
 
-    print("Accuracy: ", np.mean(results == y_eval))
-    print("Precision: ", metrics.precision_score(y_true_bin, y_pred_bin, average='macro'))
-    print("Recall: ", metrics.recall_score(y_true_bin, y_pred_bin, average='macro'))
-    print("F1 Score: ", metrics.f1_score(y_true_bin, y_pred_bin, average='macro'))
+    print("Macro Accuracy: ", np.mean(results == y_eval))
+    print("Macro Precision: ", metrics.precision_score(y_true_bin, y_pred_bin, average='macro', zero_division=0))
+    print("Macro Recall: ", metrics.recall_score(y_true_bin, y_pred_bin, average='macro',zero_division=0))
+    
+    f1 = metrics.f1_score(y_true_bin, y_pred_bin, average='macro')
+    print("Macro F1-score:", f1)
+
+    f1 = metrics.f1_score(y_true_bin, y_pred_bin, average=None)
+    class_labels = ["NEG", "POS", "NONE"]
+
+    for i, f1_value in enumerate(f1):
+      print(f"F1-score para clase {class_labels[i]}: {f1_value}")
 
 
 def bowModel():
-    transform_func = np.vectorize(lambda x: 1 if x == 'P' else (0 if x == 'N' else -1))
+    transform_func = np.vectorize(lambda x: 1 if x == 'P' else (0 if x == 'N' else 2))
     clf = NaivesBayesTextClassifier()
 
     # Process data and clean training set
-    clf.fit(transform_func, usePositiveWords=True)
+    clf.fit(transform_func, usePositiveWords=True, useStopWords=True)
 
     # process devel and clean test set
     X_new, Y_eval = process_data('devel.csv', useLemas=True)

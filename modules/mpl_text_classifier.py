@@ -10,7 +10,7 @@ class MLPTextClassifier:
     mlp_classifier = MLPClassifier
 
     def __init__(self,hidden_layer_sizes, max_iter):
-        self.mlp_classifier = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, max_iter=max_iter)
+        self.mlp_classifier = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, max_iter=max_iter, solver='sgd', learning_rate='adaptive')
         pass
 
     # Función para obtener el vector promedio de un tweet
@@ -22,6 +22,7 @@ class MLPTextClassifier:
 
         if len(vectors) > 0:
             return np.mean(vectors, axis=0)
+        
         return np.zeros(self.word_embedding.vector_size)
 
     def fit(self,transform_func):
